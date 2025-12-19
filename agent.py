@@ -274,7 +274,7 @@ def get_weather_forecast():
 
 # Initialize LLM with tool calling
 llm = ChatGoogleGenerativeAI(
-    model="gemini-2.0-flash-exp",
+    model="gemini-2.5-flash",
     temperature=0.2,
     google_api_key=GEMINI_API_KEY
 )
@@ -375,27 +375,3 @@ def run_logistics_chat(user_input: str) -> str:
     except Exception as e:
         print(f"[Agent Error] {str(e)}")
         return f"I encountered an error: {str(e)}. Please try again or rephrase your request."
-
-# ======================================================================
-# TEST SCRIPT
-# ======================================================================
-
-if __name__ == "__main__":
-    print("=" * 60)
-    print("LOGISTICS AGENT TEST")
-    print("=" * 60)
-    
-    # Simulate conversation flow
-    test_queries = [
-        "What's my current route status?",
-        "I've completed delivery at Delhi",
-        "I'm delayed by 45 minutes due to traffic jam on highway",
-        "Check traffic conditions ahead",
-        "Should I continue with current route or re-optimize?"
-    ]
-    
-    for query in test_queries:
-        print("\n" + "-" * 60)
-        response = run_logistics_chat(query)
-        print(f"\n[LogiBot] {response}")
-        print("-" * 60)

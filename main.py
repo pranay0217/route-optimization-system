@@ -58,7 +58,7 @@ class RouteManifest(BaseModel):
     """Request to create a new delivery manifest"""
     locations: List[LocationPoint]
     driver_name: Optional[str] = "Driver_001"
-    start_time: Optional[str] = None
+    start_time: Optional[str] = datetime.now()
 
 class DelayReport(BaseModel):
     """Report a delay on active route"""
@@ -183,10 +183,7 @@ async def optimize_route(data: RouteResponse):
 
 @app.post("/create-manifest")
 async def create_manifest(manifest: RouteManifest):
-    """
-    Create a new delivery manifest and initialize the agent state
-    This replaces the mock data approach
-    """
+    """Create a new delivery manifest and initialize the agent state"""
     try:
         locations_list = [loc.dict() for loc in manifest.locations]        
         result = solve_route(locations_list)
