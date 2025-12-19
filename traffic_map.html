@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html>
+<head>
+    
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+    <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap-glyphicons.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.2.0/css/all.min.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/python-visualization/folium/folium/templates/leaflet.awesome.rotate.min.css"/>
+    
+            <meta name="viewport" content="width=device-width,
+                initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+            <style>
+                #map_741be9334d81c517137c28bbee3c6f3d {
+                    position: relative;
+                    width: 100.0%;
+                    height: 100.0%;
+                    left: 0.0%;
+                    top: 0.0%;
+                }
+                .leaflet-container { font-size: 1rem; }
+            </style>
+
+            <style>html, body {
+                width: 100%;
+                height: 100%;
+                margin: 0;
+                padding: 0;
+            }
+            </style>
+
+            <style>#map {
+                position:absolute;
+                top:0;
+                bottom:0;
+                right:0;
+                left:0;
+                }
+            </style>
+
+            <script>
+                L_NO_TOUCH = false;
+                L_DISABLE_3D = false;
+            </script>
+
+        
+    <script src="https://cdn.jsdelivr.net/gh/python-visualization/folium@main/folium/templates/leaflet_heat.min.js"></script>
+</head>
+<body>
+    
+    
+    <div style="position: fixed; 
+                bottom: 50px; left: 50px; width: 220px; height: auto; 
+                background-color: white; z-index:9999; font-size:14px;
+                border:2px solid grey; border-radius: 5px; padding: 10px">
+        <p style="margin:0; font-weight:bold; text-align:center">Traffic Status Legend</p>
+        <hr style="margin: 5px 0">
+        <p style="margin:3px 0"><span style="color:green">●</span> Free Flow / Light</p>
+        <p style="margin:3px 0"><span style="color:orange">●</span> Moderate Traffic</p>
+        <p style="margin:3px 0"><span style="color:red">●</span> Heavy Congestion</p>
+        <p style="margin:3px 0"><span style="color:darkred">●</span> Severe / Blocked</p>
+        <hr style="margin: 5px 0">
+        <p style="margin:0; font-size:11px; color:grey">Data: TomTom Traffic API</p>
+    </div>
+    
+    
+            <div class="folium-map" id="map_741be9334d81c517137c28bbee3c6f3d" ></div>
+        
+</body>
+<script>
+    
+    
+            var map_741be9334d81c517137c28bbee3c6f3d = L.map(
+                "map_741be9334d81c517137c28bbee3c6f3d",
+                {
+                    center: [27.285133333333334, 75.30470000000001],
+                    crs: L.CRS.EPSG3857,
+                    ...{
+  "zoom": 8,
+  "zoomControl": true,
+  "preferCanvas": false,
+}
+
+                }
+            );
+
+            
+
+        
+    
+            var tile_layer_b2c96e8cadbee81ac4a11de9b522e44c = L.tileLayer(
+                "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+                {
+  "minZoom": 0,
+  "maxZoom": 19,
+  "maxNativeZoom": 19,
+  "noWrap": false,
+  "attribution": "\u0026copy; \u003ca href=\"https://www.openstreetmap.org/copyright\"\u003eOpenStreetMap\u003c/a\u003e contributors",
+  "subdomains": "abc",
+  "detectRetina": false,
+  "tms": false,
+  "opacity": 1,
+}
+
+            );
+        
+    
+            tile_layer_b2c96e8cadbee81ac4a11de9b522e44c.addTo(map_741be9334d81c517137c28bbee3c6f3d);
+        
+    
+            var heat_map_a82d6899ad4e6eae65c2d445af80516b = L.heatLayer(
+                [[28.7041, 77.1025, 0.0], [26.9124, 75.7873, 0.0], [26.2389, 73.0243, 0.0]],
+                {
+  "minOpacity": 0.3,
+  "maxZoom": 18,
+  "radius": 15,
+  "blur": 20,
+  "gradient": {
+  0.0: "green",
+  0.25: "yellow",
+  0.5: "orange",
+  0.75: "red",
+  1.0: "darkred",
+},
+  "maxOpacity": 0.8,
+}
+            );
+        
+    
+            heat_map_a82d6899ad4e6eae65c2d445af80516b.addTo(map_741be9334d81c517137c28bbee3c6f3d);
+        
+    
+            var marker_7f6eac7dbd6979e372fbec87af7808ae = L.marker(
+                [28.7041, 77.1025],
+                {
+}
+            ).addTo(map_741be9334d81c517137c28bbee3c6f3d);
+        
+    
+            var icon_9086337768bdb6a3a20a9a43715f91f6 = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "green",
+  "iconColor": "white",
+  "icon": "check-circle",
+  "prefix": "fa",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_d16b7d996389402d2a0b732fbd4677b0 = L.popup({
+  "maxWidth": 250,
+});
+
+        
+            
+                var html_005b28443dce7510bc79b1d5aa97af45 = $(`<div id="html_005b28443dce7510bc79b1d5aa97af45" style="width: 100.0%; height: 100.0%;">             <div style='min-width: 200px'>                 <h4><b>Delhi</b></h4>                 <p><b>Status:</b> FREE_FLOW</p>                 <p><b>Current Speed:</b> 30 km/h</p>                 <p><b>Delay Factor:</b> 1.0x</p>             </div>             </div>`)[0];
+                popup_d16b7d996389402d2a0b732fbd4677b0.setContent(html_005b28443dce7510bc79b1d5aa97af45);
+            
+        
+
+        marker_7f6eac7dbd6979e372fbec87af7808ae.bindPopup(popup_d16b7d996389402d2a0b732fbd4677b0)
+        ;
+
+        
+    
+    
+            marker_7f6eac7dbd6979e372fbec87af7808ae.bindTooltip(
+                `<div>
+                     1. Delhi
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_7f6eac7dbd6979e372fbec87af7808ae.setIcon(icon_9086337768bdb6a3a20a9a43715f91f6);
+            
+    
+            var marker_658acdc51074f8d3a3f7343fba4dbc01 = L.marker(
+                [26.9124, 75.7873],
+                {
+}
+            ).addTo(map_741be9334d81c517137c28bbee3c6f3d);
+        
+    
+            var icon_944f4aea0bcb147c79a4ab73967994fb = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "green",
+  "iconColor": "white",
+  "icon": "check-circle",
+  "prefix": "fa",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_afb2dc5c5f3fbed54ead9633c99f090a = L.popup({
+  "maxWidth": 250,
+});
+
+        
+            
+                var html_2ed70ce0338dfc97632ccade742701f9 = $(`<div id="html_2ed70ce0338dfc97632ccade742701f9" style="width: 100.0%; height: 100.0%;">             <div style='min-width: 200px'>                 <h4><b>Jaipur</b></h4>                 <p><b>Status:</b> FREE_FLOW</p>                 <p><b>Current Speed:</b> 52 km/h</p>                 <p><b>Delay Factor:</b> 1.0x</p>             </div>             </div>`)[0];
+                popup_afb2dc5c5f3fbed54ead9633c99f090a.setContent(html_2ed70ce0338dfc97632ccade742701f9);
+            
+        
+
+        marker_658acdc51074f8d3a3f7343fba4dbc01.bindPopup(popup_afb2dc5c5f3fbed54ead9633c99f090a)
+        ;
+
+        
+    
+    
+            marker_658acdc51074f8d3a3f7343fba4dbc01.bindTooltip(
+                `<div>
+                     2. Jaipur
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_658acdc51074f8d3a3f7343fba4dbc01.setIcon(icon_944f4aea0bcb147c79a4ab73967994fb);
+            
+    
+            var marker_641dbd58a68083637759ce23b4d08f24 = L.marker(
+                [26.2389, 73.0243],
+                {
+}
+            ).addTo(map_741be9334d81c517137c28bbee3c6f3d);
+        
+    
+            var icon_f991edad40b143ca4803395f46a0e4cd = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "green",
+  "iconColor": "white",
+  "icon": "check-circle",
+  "prefix": "fa",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_0efdca21681716be467c823ccfc32041 = L.popup({
+  "maxWidth": 250,
+});
+
+        
+            
+                var html_8f5147add7423c90641a4598a7a399bb = $(`<div id="html_8f5147add7423c90641a4598a7a399bb" style="width: 100.0%; height: 100.0%;">             <div style='min-width: 200px'>                 <h4><b>Jodhpur</b></h4>                 <p><b>Status:</b> FREE_FLOW</p>                 <p><b>Current Speed:</b> 46 km/h</p>                 <p><b>Delay Factor:</b> 1.0x</p>             </div>             </div>`)[0];
+                popup_0efdca21681716be467c823ccfc32041.setContent(html_8f5147add7423c90641a4598a7a399bb);
+            
+        
+
+        marker_641dbd58a68083637759ce23b4d08f24.bindPopup(popup_0efdca21681716be467c823ccfc32041)
+        ;
+
+        
+    
+    
+            marker_641dbd58a68083637759ce23b4d08f24.bindTooltip(
+                `<div>
+                     3. Jodhpur
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_641dbd58a68083637759ce23b4d08f24.setIcon(icon_f991edad40b143ca4803395f46a0e4cd);
+            
+    
+            var poly_line_40d08bc75297319700fcd293eef4f468 = L.polyline(
+                [[28.7041, 77.1025], [26.9124, 75.7873], [26.2389, 73.0243]],
+                {"bubblingMouseEvents": true, "color": "blue", "dashArray": null, "dashOffset": null, "fill": false, "fillColor": "blue", "fillOpacity": 0.2, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "noClip": false, "opacity": 0.7, "smoothFactor": 1.0, "stroke": true, "weight": 3}
+            ).addTo(map_741be9334d81c517137c28bbee3c6f3d);
+        
+    
+        var popup_05e489ee139713e088b47fe4ff245339 = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_12c367a0dce7eac189339523b7953010 = $(`<div id="html_12c367a0dce7eac189339523b7953010" style="width: 100.0%; height: 100.0%;">Planned Route</div>`)[0];
+                popup_05e489ee139713e088b47fe4ff245339.setContent(html_12c367a0dce7eac189339523b7953010);
+            
+        
+
+        poly_line_40d08bc75297319700fcd293eef4f468.bindPopup(popup_05e489ee139713e088b47fe4ff245339)
+        ;
+
+        
+    
+</script>
+</html>
