@@ -4,7 +4,9 @@ import ChatHeader from '../components/chat/ChatHeader';
 import ChatMessages from '../components/chat/ChatMessages';
 import ChatInput from '../components/chat/ChatInput';
 import TypingIndicator from '../components/chat/TypingIndicator';
+
 import { sendAgentMessage, getAgentStatus } from '../services/api';
+import { useSession } from '../hooks/useSession';
 
 export default function Chat() {
   /* ---------------- AGENT STATE ---------------- */
@@ -26,21 +28,15 @@ export default function Chat() {
     }
   ]);
   const [typing, setTyping] = useState(false);
-  const [sessionId] = useState(`session_${Date.now()}`);
+  const sessionId = useSession();
 
   /* ---------------- LOAD AGENT STATUS ---------------- */
-  useEffect(() => {
-    loadAgentStatus();
-    
-    // Poll for status updates every 30 seconds
-    const interval = setInterval(loadAgentStatus, 30000);
-    return () => clearInterval(interval);
-  }, []);
 
   const loadAgentStatus = async () => {
+    if (!sessionId) return;
     try {
-      const status = await getAgentStatus();
-      setAgentStatus(status);
+      const status = await getAgentStatus(sessionId);
+      setAgentStatus(status.data || status);
     } catch (err) {
       console.error('Failed to load agent status:', err);
       setAgentStatus(null);
@@ -48,6 +44,15 @@ export default function Chat() {
       setLoadingStatus(false);
     }
   };
+
+  useEffect(() => {
+  if (!sessionId) return;
+  loadAgentStatus();
+
+  // Poll for status updates every 60 seconds
+  const interval = setInterval(loadAgentStatus, 60000);
+  return () => clearInterval(interval);
+}, [sessionId]);
 
   /* ---------------- QUICK ACTIONS ---------------- */
   const quickActions = [

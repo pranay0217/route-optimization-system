@@ -73,29 +73,29 @@ export const extractSequence = async (requestText) => {
 /**
  * Optimize route (used by NLP + MAP)
  */
-export const optimizeRoute = async (parsedLocations) => {
+export const optimizeRoute = async (parsedLocations, sessionId) => {
   if (!Array.isArray(parsedLocations) || parsedLocations.length < 2) {
     throw new Error("At least two locations are required.");
   }
 
-  const payload = {
-    parsed_locations: parsedLocations.map((loc, index) => ({
-      name: loc.name,
-      lat: loc.lat,
-      lon: loc.lon,
-      visit_sequence: loc.visit_sequence ?? index + 1,
-    })),
-  };
-
-  const response = await api.post("/optimize-route", payload);
-  return response.data;
+  const response = await fetch(`${API_BASE_URL}/optimize-route?session_id=${sessionId}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ parsed_locations: parsedLocations }),
+  });
+  return response.json();
 };
 
 /**
  * Full NLP pipeline
  */
-export const processLogisticsRequest = async (requestText) => {
-  const extracted = await extractSequence(requestText);
+export const processLogisticsRequest = async (requestText, sessionId) => {
+  const extractRes = await fetch(`${API_BASE_URL}/extract-sequence`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ request_text: requestText })
+    });
+  const extracted = await extractRes.json();
 
   if (
     !extracted?.parsed_locations ||
@@ -104,18 +104,29 @@ export const processLogisticsRequest = async (requestText) => {
     throw new Error("At least two locations are required.");
   }
 
-  const optimized = await optimizeRoute(
-    extracted.parsed_locations
-  );
+  const optimizeRes = await fetch(`${API_BASE_URL}/optimize-route?session_id=${sessionId}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(extracted) 
+  });
+  const optimized = await optimizeRes.json();
 
-  return {
-    extracted,
-    optimized,
-  };
+  return { extracted, optimized };
 };
 
 /* =====================================================
    MAP FLOW
+===================================================== */
+
+/**
+ * Optimize route from map-selected locations
+ * @param [{ name, lat, lon }]
+ */
+export const optimizeFromMap = async (locations) => {
+  if (!Array.isArray(locations) || locations.length < 2) {
+    throw new Error("Select at least two locations.");
+  }
+
   const enrichedLocations = locations.map((loc, index) => ({
     name: loc.name,
     lat: loc.lat,
@@ -128,6 +139,87 @@ export const processLogisticsRequest = async (requestText) => {
 
 /* =====================================================
    MANIFEST & AGENT FLOW 🚛🤖
+===================================================== */
+
+/**
+ * Create a new delivery manifest
+ * This initializes the agent state with an active route
+ */
+export const createManifest = async (routeId, driverName, sessionId) => {
+  const response = await fetch(`${API_BASE_URL}/create-manifest`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      route_id: routeId, 
+      driver_name: driverName,
+      session_id: sessionId
+    }),
+  });
+  // ... check response ...
+  return response.json();
+};
+
+/**
+ * Get current agent/route status
+ */
+export const getAgentStatus = async (sessionId) => {
+  const response = await api.get("/agent/status", {
+    params: { session_id: sessionId }
+  });
+  return response.data;
+};
+
+/**
+ * Report a delay to the agent
+ */
+// export const reportDelay = async (delayMinutes, reason, location = null) => {
+//   const payload = {
+//     delay_minutes: delayMinutes,
+//     reason,
+//     location,
+//   };
+
+//   const response = await api.post("/agent/report-delay", payload);
+//   return response.data;
+// };
+
+/**
+ * Check traffic conditions via agent
+ */
+// export const checkTraffic = async () => {
+//   const response = await api.post("/agent/check-traffic");
+//   return response.data;
+// };
+
+/**
+ * Get traffic map visualization
+ */
+export const getTrafficMap = async () => {
+  const response = await api.get("/traffic/map");
+  return response.data;
+};
+
+/**
+ * Download traffic map HTML
+ */
+export const downloadTrafficMap = () => {
+  return `${API_BASE_URL}/traffic/download-map`;
+};
+
+/* =====================================================
+   CHAT / AI AGENT FLOW 🧠🤖
+===================================================== */
+
+/**
+ * Send message to AI Agent (LogiBOT)
+ * This is the main agent chat endpoint that handles:
+ * - Route explanations
+ * - Traffic/weather reasoning
+ * - Delay reports
+ * - Status queries
+ * - Natural language commands
+ */
+export const sendAgentMessage = async (message, sessionId) => {
   if (!message || typeof message !== "string") {
     throw new Error("Chat message must be a non-empty string.");
   }

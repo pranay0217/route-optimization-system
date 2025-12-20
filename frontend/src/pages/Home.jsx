@@ -12,9 +12,11 @@ import MapSelectionModal from '../components/home/MapSelectionModal';
 import ChatNavButton from '../components/home/ChatNavButton';
 
 import { processLogisticsRequest, optimizeRoute, createManifest } from '../services/api';
+import { useSession } from '../hooks/useSession';
 
 function Home() {
   const navigate = useNavigate();
+  const sessionId = useSession();
 
   const [query, setQuery] = useState('');
   const [loading, setLoading] = useState(false);
@@ -31,6 +33,7 @@ function Home() {
     "Start from Delhi, visit Mumbai, Bangalore, and Chennai, then end at Kolkata",
     "I want to travel from delhi to deliver order at pune, jodhpur, banglore, mumbai and jaipur",
     "Begin at Pune, then go to Hyderabad, after that Jaipur, and finally return to Pune",
+    "I want to travel to Mumbai from Delhi via Banglore"
   ];
 
   // --------------------------------------------------
@@ -65,6 +68,11 @@ function Home() {
       return;
     }
 
+    if (!sessionId) { 
+      setError('Initializing session... please wait.');
+      return;
+    }
+
     setLoading(true);
     setError(null);
     setStage('processing');
@@ -73,7 +81,7 @@ function Home() {
     setManifestCreated(false);
 
     try {
-      const result = await processLogisticsRequest(query);
+      const result = await processLogisticsRequest(query, sessionId);
 
       setExtractedLocations(result.extracted.parsed_locations);
       setOptimizationResult(result.optimized);
@@ -94,6 +102,10 @@ function Home() {
   // MAP BASED FLOW
   // --------------------------------------------------
   const handleMapOptimization = async (locations) => {
+    if (!sessionId) { 
+        setError('Initializing session... please wait.');
+        return;
+    }
     setShowMap(false);
     setLoading(true);
     setError(null);
@@ -103,7 +115,7 @@ function Home() {
     setManifestCreated(false);
 
     try {
-      const optimized = await optimizeRoute(locations);
+      const optimized = await optimizeRoute(locations, sessionId);
 
       setExtractedLocations(locations);
       setOptimizationResult(optimized);
@@ -124,8 +136,13 @@ function Home() {
   // CREATE MANIFEST & ACTIVATE AGENT
   // --------------------------------------------------
   const handleCreateManifest = async () => {
-    if (!extractedLocations || extractedLocations.length < 2) {
-      setError('Need valid locations to create manifest');
+    if (!optimizationResult || !optimizationResult.route_id) {
+      setError('No optimized route found. Please optimize first.');
+      return;
+    }
+
+    if (!sessionId) {
+      setError('Initializing session... please try again in a moment.');
       return;
     }
 
@@ -133,7 +150,7 @@ function Home() {
     setError(null);
 
     try {
-      const manifest = await createManifest(extractedLocations, "Driver_001");
+      const manifest = await createManifest(optimizationResult.route_id, "Driver_001", sessionId);
 
       // Update optimization result with manifest info
       const updatedResult = {
