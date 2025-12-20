@@ -138,33 +138,102 @@ export const optimizeFromMap = async (locations) => {
 };
 
 /* =====================================================
-   CHAT / EXPLANATION FLOW 🧠🤖
+   MANIFEST & AGENT FLOW 🚛🤖
 ===================================================== */
 
 /**
- * Send message to LogiBOT
- * Used for:
- * - Route explanation
- * - Traffic / weather reasoning
- * - Summary generation
- * - User requested modifications
+ * Create a new delivery manifest
+ * This initializes the agent state with an active route
  */
-export const sendChatMessage = async (message, context) => {
+export const createManifest = async (locations, driverName = "Driver_001") => {
+  if (!Array.isArray(locations) || locations.length < 2) {
+    throw new Error("At least two locations are required for a manifest.");
+  }
+
+  const payload = {
+    locations: locations.map((loc, index) => ({
+      name: loc.name,
+      lat: loc.lat,
+      lon: loc.lon,
+      visit_sequence: loc.visit_sequence ?? index + 1,
+    })),
+    driver_name: driverName,
+    start_time: new Date().toISOString(),
+  };
+
+  const response = await api.post("/create-manifest", payload);
+  return response.data;
+};
+
+/**
+ * Get current agent/route status
+ */
+export const getAgentStatus = async () => {
+  const response = await api.get("/agent/status");
+  return response.data;
+};
+
+/**
+ * Report a delay to the agent
+ */
+export const reportDelay = async (delayMinutes, reason, location = null) => {
+  const payload = {
+    delay_minutes: delayMinutes,
+    reason,
+    location,
+  };
+
+  const response = await api.post("/agent/report-delay", payload);
+  return response.data;
+};
+
+/**
+ * Check traffic conditions via agent
+ */
+export const checkTraffic = async () => {
+  const response = await api.post("/agent/check-traffic");
+  return response.data;
+};
+
+/**
+ * Get traffic map visualization
+ */
+export const getTrafficMap = async () => {
+  const response = await api.get("/traffic/map");
+  return response.data;
+};
+
+/**
+ * Download traffic map HTML
+ */
+export const downloadTrafficMap = () => {
+  return `${API_BASE_URL}/traffic/download-map`;
+};
+
+/* =====================================================
+   CHAT / AI AGENT FLOW 🧠🤖
+===================================================== */
+
+/**
+ * Send message to AI Agent (LogiBOT)
+ * This is the main agent chat endpoint that handles:
+ * - Route explanations
+ * - Traffic/weather reasoning
+ * - Delay reports
+ * - Status queries
+ * - Natural language commands
+ */
+export const sendAgentMessage = async (message, sessionId = "default_session") => {
   if (!message || typeof message !== "string") {
     throw new Error("Chat message must be a non-empty string.");
   }
 
-  // 🔐 Guarantee valid JSON object (prevents 422)
-  const safeContext =
-    context && typeof context === "object" && !Array.isArray(context)
-      ? context
-      : {};
+  const payload = {
+    message: message.trim(),
+    session_id: sessionId,
+  };
 
-  const response = await api.post("/chat", {
-    message,
-    context: safeContext,
-  });
-
+  const response = await api.post("/agent/chat", payload);
   return response.data;
 };
 
