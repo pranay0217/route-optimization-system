@@ -3,23 +3,17 @@ import json
 from datetime import datetime
 from dotenv import load_dotenv
 
-# LangChain Imports
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.tools import tool
 from langchain_core.messages import HumanMessage, SystemMessage, ToolMessage
 
-# Import your modules
 from route import solve_route
 from traffic import generate_traffic_map
 
 load_dotenv()
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
-# ======================================================================
 # STATE MANAGEMENT
-# ======================================================================
-# In production, this would be Redis/Database
-# For now, simple in-memory state
 CURRENT_STATE = {
     "active_route": [],  # List of stops with status
     "is_active": False,
@@ -29,10 +23,7 @@ CURRENT_STATE = {
     "total_duration": 0
 }
 
-# ======================================================================
 # AGENT TOOLS
-# ======================================================================
-
 @tool
 def get_route_status():
     """
@@ -67,9 +58,6 @@ def mark_stop_completed(stop_name: str):
     """
     Mark a delivery stop as completed.
     Use this when driver confirms delivery at a location.
-    
-    Args:
-        stop_name: Name of the city/stop to mark as completed
     """
     if not CURRENT_STATE["is_active"]:
         return "No active route."
@@ -96,10 +84,6 @@ def report_delay_and_update_eta(delay_minutes: int, reason: str):
     """
     Report a delay and update estimated arrival times.
     Use this when driver reports traffic, breakdown, or other delays.
-    
-    Args:
-        delay_minutes: Number of minutes delayed
-        reason: Reason for delay (e.g., "traffic jam", "vehicle breakdown")
     """
     if not CURRENT_STATE["is_active"]:
         return "No active route to update."
@@ -127,7 +111,7 @@ def report_delay_and_update_eta(delay_minutes: int, reason: str):
     ]
     
     if delay_minutes > 30:
-        response.append("⚠️ Significant delay detected. Consider notifying customers.")
+        response.append("Significant delay detected. Consider notifying customers.")
     
     if "traffic" in reason.lower() or "jam" in reason.lower():
         response.append("Tip: Use check_traffic_conditions tool to find alternative routes.")
@@ -145,9 +129,7 @@ def check_traffic_conditions():
         return "No active route to check traffic for."
     
     try:
-        locations = CURRENT_STATE["active_route"]
-        
-        print("[Agent] Fetching real-time traffic data from HERE API...")
+        locations = CURRENT_STATE["active_route"]        
         result = generate_traffic_map(locations, route_sequence=locations)
         
         response = [
@@ -158,10 +140,10 @@ def check_traffic_conditions():
         ]
         
         if result['congestion_status'] == "Severe":
-            response.append("\n⚠️ ALERT: Heavy traffic detected!")
+            response.append("\nALERT: Heavy traffic detected!")
             response.append("Recommendation: Consider re-routing or waiting for conditions to improve.")
         elif result['congestion_status'] == "Normal":
-            response.append("\n✓ Good news: Traffic is flowing normally.")
+            response.append("\nGood news: Traffic is flowing normally.")
         
         return "\n".join(response)
         
@@ -203,9 +185,6 @@ def reoptimize_remaining_route():
         
         if result.get("status") == "success":
             new_sequence = result["optimized_route"]
-            
-            # Update the state with new sequence
-            # Keep completed stops, reorder pending stops
             new_active_route = [s for s in CURRENT_STATE["active_route"] if s["status"] == "completed"]
             
             for city_name in new_sequence[1:]:  # Skip first (current location)
@@ -220,7 +199,7 @@ def reoptimize_remaining_route():
             CURRENT_STATE["last_updated"] = datetime.now().isoformat()
             
             response = [
-                "✓ Route re-optimized successfully!",
+                "Route re-optimized successfully!",
                 f"New sequence: {' → '.join(new_sequence)}",
                 f"Estimated distance: {result.get('total_distance_km', 'N/A')} km",
                 f"Estimated time: {result.get('total_duration_hours', 'N/A')} hours"
@@ -268,11 +247,7 @@ def get_weather_forecast():
     
     return "\n".join(response)
 
-# ======================================================================
 # AGENT CONFIGURATION
-# ======================================================================
-
-# Initialize LLM with tool calling
 llm = ChatGoogleGenerativeAI(
     model="gemini-2.5-flash",
     temperature=0.2,
@@ -291,19 +266,10 @@ tools = [
 
 llm_with_tools = llm.bind_tools(tools)
 
-# ======================================================================
 # CHAT RUNTIME
-# ======================================================================
-
 def run_logistics_chat(user_input: str) -> str:
     """
     Main function to interact with the logistics agent.
-    
-    Args:
-        user_input: User message/query
-        
-    Returns:
-        Agent's response as string
     """
     print(f"\n[User] {user_input}")
     
