@@ -58,7 +58,7 @@ class RouteManifest(BaseModel):
     """Request to create a new delivery manifest"""
     locations: List[LocationPoint]
     driver_name: Optional[str] = "Driver_001"
-    start_time: Optional[str] = datetime.now()
+    start_time: Optional[str] = datetime.now().isoformat()
 
 class DelayReport(BaseModel):
     """Report a delay on active route"""
@@ -193,7 +193,9 @@ async def create_manifest(manifest: RouteManifest):
         route_names = result["optimized_route"]
         full_route_objects = []
         
-        for name in route_names:
+        full_route_objects.append({"name": route_names[0], "status": "completed"})
+        
+        for name in route_names[1:]:
             matching_loc = next(
                 (loc for loc in locations_list if loc["name"].lower() == name.lower()), 
                 None
@@ -201,6 +203,7 @@ async def create_manifest(manifest: RouteManifest):
             if matching_loc:
                 full_route_objects.append({
                     **matching_loc,
+                    # "eta": result["full_log"],
                     "status": "pending"
                 })
         

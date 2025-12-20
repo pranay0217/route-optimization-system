@@ -5,27 +5,20 @@ import math
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
 
-# Load Environment Variables
 load_dotenv()
 ORS_API = os.getenv("ORS_API_KEY")
 WEATHER_API = os.getenv("WEATHER_API") 
 
-# ======================================================================
 # CONFIGURATION
-# ======================================================================
 POPULATION_SIZE = 60
 GENERATIONS = 150
 MUTATION_RATE = 0.20
 
-# Weights for Cost Function
 ALPHA = 1.0  # Distance Weight
 BETA  = 1.5  # Time Weight (Time is money, and we might wait for weather)
 SEQUENCE_PENALTY = 1e6  # Massive penalty for breaking user order
 
-# ======================================================================
-# 1. DATA FETCHING: MATRIX & WEATHER
-# ======================================================================
-
+# DATA FETCHING: MATRIX & WEATHER
 def get_distance_matrix(locations):
     """
     Fetches Distance and Duration matrices from OpenRouteService.
@@ -72,7 +65,6 @@ def fetch_weather_forecasts(locations):
             res = requests.get(url, params=params).json()
             
             if "list" in res:
-                # Store the raw list; we'll parse it dynamically during routing
                 forecasts[idx] = res["list"]
         except Exception as e:
             print(f"[route.py] Weather API Error for {loc.get('name', idx)}: {e}")
@@ -103,17 +95,13 @@ def check_weather_at_time(forecast_list, target_datetime):
             min_diff = diff
             relevant_entry = entry
 
-    # If the closest data is stale (> 3 hours away), ignore it to be safe
     if not relevant_entry or min_diff > 10800: 
         return False, 0, ""
-
-    # 2. Extract Values Safely
-    # Default to 0 if data is missing (common in clear weather)
+    
     rain_vol = relevant_entry.get("rain", {}).get("3h", 0) or 0
     wind_speed = relevant_entry.get("wind", {}).get("speed", 0) or 0
     visibility = relevant_entry.get("visibility", 10000) or 10000 # Default 10km (clear)
     
-    # 3. PRODUCTION THRESHOLDS (Real-world safety limits)
     reasons = []
     
     # Threshold: Moderate/Heavy Rain (> 5mm per 3 hours) causes hydroplaning risk
@@ -134,10 +122,7 @@ def check_weather_at_time(forecast_list, target_datetime):
     
     return False, 0, ""
 
-# ======================================================================
-# 2. GENETIC ALGORITHM CORE
-# ======================================================================
-
+# GENETIC ALGORITHM CORE
 def calculate_route_metrics(route, dist_matrix, dur_matrix, forecasts, start_time):
     """
     Calculates Distance, Duration (including Waits), and generates a Travel Log.
@@ -146,9 +131,8 @@ def calculate_route_metrics(route, dist_matrix, dur_matrix, forecasts, start_tim
     total_duration = 0
     current_time = start_time
     
-    travel_log = [] # List of events for the Agent to read
+    travel_log = [] 
     
-    # Start at first city
     travel_log.append({
         "city_idx": route[0],
         "event": "Depart",
@@ -172,7 +156,6 @@ def calculate_route_metrics(route, dist_matrix, dur_matrix, forecasts, start_tim
         should_wait, wait_sec, reason = check_weather_at_time(forecasts.get(v, []), current_time)
         
         if should_wait:
-            # Smart Waiting Logic
             total_duration += wait_sec
             wait_end_time = current_time + timedelta(seconds=wait_sec)
             
@@ -184,7 +167,7 @@ def calculate_route_metrics(route, dist_matrix, dur_matrix, forecasts, start_tim
                 "note": f"Waiting for {reason}"
             })
             
-            current_time = wait_end_time # Resume travel after wait
+            current_time = wait_end_time 
 
         # Arrival Log
         travel_log.append({
@@ -230,9 +213,7 @@ def cost_function(route, dist_matrix, dur_matrix, forecasts, constraints, start_
     cost = (ALPHA * dist) + (BETA * time_with_waits) + (seq_violations * SEQUENCE_PENALTY)
     return cost
 
-# -------------------------------
 # GA HELPERS
-# -------------------------------
 def create_initial_population(num_cities, source_index=0):
     population = []
     remaining = list(range(num_cities))
@@ -275,10 +256,7 @@ def mutate(route):
             route[a], route[b] = route[b], route[a]
     return route
 
-# ======================================================================
-# MAIN ENTRY POINT FOR AGENT
-# ======================================================================
-
+# Main GA route optimization function
 def solve_route(locations_data):
     """
     Main function called by the Agent.
@@ -357,12 +335,3 @@ def solve_route(locations_data):
         "weather_alerts": weather_alerts,
         "full_log": travel_log  
     }
-
-# Test block
-if __name__ == "__main__":
-    test_locs = [
-        {"name": "Delhi", "lat": 28.61, "lon": 77.20, "visit_sequence": 1},
-        {"name": "Jaipur", "lat": 26.91, "lon": 75.78, "visit_sequence": 2},
-        {"name": "Mumbai", "lat": 19.07, "lon": 72.87, "visit_sequence": 3}
-    ]
-    print(solve_route(test_locs))
