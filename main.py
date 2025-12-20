@@ -19,9 +19,6 @@ ORS_API_KEY = os.getenv("ORS_API_KEY")
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 TOMTOM_API_KEY = os.getenv("TOMTOM_API_KEY")
 
-if not GEMINI_API_KEY:
-    raise ValueError("GEMINI_API_KEY is missing")
-
 genai.configure(api_key=GEMINI_API_KEY)
 model = genai.GenerativeModel('gemini-2.5-flash')
 
@@ -379,18 +376,7 @@ async def download_traffic_map():
         media_type="text/html",
         filename="traffic_map.html"
     )
-
+  
 @app.get("/health")
 async def health_check():
-    """Health check endpoint"""
-    return {
-        "status": "healthy",
-        "timestamp": datetime.now().isoformat(),
-        "services": {
-            "route_optimizer": "operational",
-            "ai_agent": "operational",
-            "geocoding": "operational" if ORS_API_KEY else "unavailable",
-            "traffic_monitoring": "operational" if TOMTOM_API_KEY else "unavailable"
-        },
-        "active_routes": 1 if CURRENT_STATE["is_active"] else 0
-    }
+    return {"status": "healthy"}
