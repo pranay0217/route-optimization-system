@@ -128,13 +128,16 @@ def check_traffic_conditions(session_id: str):
     
     try:
         locations = state["active_route"]        
-        result = generate_traffic_map(locations, route_sequence=locations)
+        timestamp = datetime.now().strftime("%H%M%S")
+        unique_map_name = f"traffic_map_{session_id}_{timestamp}.html"
+        result = generate_traffic_map(locations, route_sequence=locations, filename=unique_map_name, fast_mode=True)
+        map_url = f"http://localhost:8000/traffic/view-map/{unique_map_name}"
         
         response = [
             f"Traffic Analysis Complete:",
             f"Status: {result['congestion_status']}",
             f"Details: {result['details']}",
-            f"Map: {result['map_file']}"
+            f"\n<iframe src='{map_url}' width='100%' height='400px' style='border:none; border-radius:10px;' title='Traffic Map'></iframe>"
         ]
         
         if result['congestion_status'] == "Severe":
@@ -159,7 +162,6 @@ def reoptimize_remaining_route(session_id: str):
     if not state["is_active"]:
         return "No active route to optimize."
     
-    # Get remaining stops
     remaining_stops = [
         s for s in state["active_route"] 
         if s["status"] == "pending"
@@ -172,7 +174,6 @@ def reoptimize_remaining_route(session_id: str):
         return "Only one stop remaining. Re-optimization not necessary."
     
     try:
-        # Get current location (last completed stop or starting point)
         completed_stops = [s for s in state["active_route"] if s["status"] == "completed"]
         current_location = completed_stops[-1] if completed_stops else state["active_route"][0]        
         locations_to_optimize = [current_location] + remaining_stops
