@@ -11,9 +11,8 @@ import ErrorDisplay from '../components/home/ErrorDisplay';
 import MapSelectionModal from '../components/home/MapSelectionModal';
 import ChatNavButton from '../components/home/ChatNavButton';
 import RouteSummary from '../components/home/RouteSummary';
-import { getRouteSummary } from '../services/api';
 
-import { processLogisticsRequest, optimizeRoute, createManifest, optimizeFromMap } from '../services/api';
+import { processLogisticsRequest, optimizeRoute, createManifest, optimizeFromMap, getRouteSummary } from '../services/api';
 import { useSession } from '../hooks/useSession';
 
 function Home() {
@@ -72,15 +71,14 @@ function Home() {
     setRouteSummary(null);
 
     try {
-      // Call backend API defined in api.js
-      // Assuming you have an endpoint like getRouteSummary(optimizedRoute, locations)
-      const response = await getRouteSummary(optimizedRoute, locations); // <-- api.js function
+      const response = await getRouteSummary(optimizedRoute, locations); 
 
-      // The backend should return { summary: "..." }
       if (response?.summary) {
         setRouteSummary(response.summary);
+        saveToSession(locations, optimizedRoute, manifestCreated, response.summary);
       } else {
         setRouteSummary("No summary available.");
+        saveToSession(locations, optimizedRoute, manifestCreated, "No summary available.");
       }
 
     } catch (err) {
@@ -122,7 +120,7 @@ function Home() {
 
       fetchRouteSummary(result.optimized, result.extracted.parsed_locations);
       // Save to session storage
-      saveToSession(result.extracted.parsed_locations, result.optimized, false);
+      saveToSession(result.extracted.parsed_locations, result.optimized, false, routeSummary);
 
     } catch (err) {
       setError(err.message || 'Something went wrong');
@@ -158,7 +156,7 @@ function Home() {
       fetchRouteSummary(optimized, locations);
 
       // Save to session storage
-      saveToSession(locations, optimized, false);
+      saveToSession(locations, optimized, false, routeSummary);
 
     } catch (err) {
       setError(err.message || 'Route optimization failed');
@@ -200,7 +198,7 @@ function Home() {
       setManifestCreated(true);
 
       // Save to session with manifest flag
-      saveToSession(extractedLocations, updatedResult, true);
+      saveToSession(extractedLocations, updatedResult, true, routeSummary);
 
       // Show success message
       setError(null);
@@ -215,11 +213,12 @@ function Home() {
   // --------------------------------------------------
   // SAVE TO SESSION STORAGE
   // --------------------------------------------------
-  const saveToSession = (locations, optimized, manifestCreated) => {
+  const saveToSession = (locations, optimized, manifestCreated, routeSummary) => {
     const context = {
       locations,
       optimizedRoute: optimized,
       manifestCreated,
+      routeSummary,
       timestamp: new Date().toISOString(),
     };
     sessionStorage.setItem("routeContext", JSON.stringify(context));
