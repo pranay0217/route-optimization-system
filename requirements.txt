@@ -1,19 +1,22 @@
-# FastAPI + server
+# FastAPI web server
 fastapi==0.113.0
 uvicorn[standard]==0.23.2
+
+# Env and utilities
 python-dotenv==1.0.1
-pydantic==2.5.2
 requests==2.32.1
 
-# Google GenAI (replacement for deprecated google.generativeai)
-google-genai==0.5.0
+# Google GenAI (Gemini SDK)
+google-genai==1.52.0
 
 # Supabase Python client
 supabase==2.27.0
 
-# LangChain + GenAI integration
+# LangChain core library
 langchain==0.1.0
-langchain-google-genai==0.1.0
 
-# Folium for maps and HeatMap
+# LangChain Google GenAI integration
+langchain-google-genai==4.1.2
+
+# Folium for maps and heatmaps
 folium==0.16.0
