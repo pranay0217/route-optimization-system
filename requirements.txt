@@ -1,25 +1,19 @@
-# FastAPI and related
+# FastAPI + server
 fastapi==0.113.0
 uvicorn[standard]==0.23.2
 python-dotenv==1.0.1
 pydantic==2.5.2
 requests==2.32.1
 
-# Google Gemini / Generative AI
-google-genai==0.4.0
+# Google GenAI (replacement for deprecated google.generativeai)
+google-genai==0.5.0
 
-# Supabase client
-supabase==1.2.2
+# Supabase Python client
+supabase==2.27.0
 
-# LangChain & Google GenAI integration
+# LangChain + GenAI integration
 langchain==0.1.0
 langchain-google-genai==0.1.0
 
-# Concurrency / Threading
-# (No extra package needed; standard library)
-
 # Folium for maps and HeatMap
 folium==0.16.0
-
-# Optional: Any other dependencies
-# (e.g., databases, ORMs)
