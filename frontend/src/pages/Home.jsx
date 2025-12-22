@@ -257,7 +257,7 @@ function Home() {
                 <Truck className="w-8 h-8" />
               </div>
               <div>
-                <h1 className="text-3xl font-bold">AI Logistics Optimizer</h1>
+                <h1 className="text-3xl font-bold">AI-Powered Multi-City Route Optimizer</h1>
                 <p className="text-primary-100 mt-1">
                   Intelligent Multi-City Route Planning with AI Agent
                 </p>

@@ -62,13 +62,9 @@ export default function Chat() {
   };
 
   useEffect(() => {
-  if (!sessionId) return;
-  loadAgentStatus();
-
-  // Poll for status updates every 60 seconds
-  const interval = setInterval(loadAgentStatus, 60000);
-  return () => clearInterval(interval);
-}, [sessionId]);
+    if (!sessionId) return;
+    loadAgentStatus();
+  }, [sessionId]);
 
   /* ---------------- QUICK ACTIONS ---------------- */
   const quickActions = [
@@ -82,7 +78,7 @@ export default function Chat() {
     },
     {
       label: '🌧️ Weather Alert',
-      message: "I'm delayed by 15 minutes due to heavy rain"
+      message: "How is the weather for the next location in my route?"
     },
     {
       label: '📍 Next Stop',

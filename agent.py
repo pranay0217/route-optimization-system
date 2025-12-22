@@ -7,7 +7,7 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.tools import tool
 from langchain_core.messages import HumanMessage, SystemMessage, ToolMessage
 
-from route import solve_route
+from route import solve_route, get_single_stop_weather
 from traffic import generate_traffic_map
 from db import get_session_state, mark_stop_complete_db, update_etas_db
 load_dotenv()
@@ -216,8 +216,8 @@ def reoptimize_remaining_route(session_id: str):
 @tool
 def get_weather_forecast(session_id: str):
     """
-    Get weather forecast for remaining stops on the route.
-    Use this to check if weather conditions might affect the journey.
+    Get real-time weather forecast for the NEXT upcoming stop only.
+    Use this to check immediate road conditions.
     """
     state = get_session_state(session_id)
     if not state["is_active"]:
@@ -227,23 +227,16 @@ def get_weather_forecast(session_id: str):
     
     if not remaining_stops:
         return "All stops completed."
+    next_stop = remaining_stops[0]
     
-    # Note: Weather data is already integrated in route.py
-    # This tool provides a summary
-    response = [
-        "Weather Forecast Summary:",
-        f"Checking conditions for {len(remaining_stops)} remaining stops..."
-    ]
+    weather_report = get_single_stop_weather(
+        lat=next_stop["lat"],
+        lon=next_stop["lon"],
+        location_name=next_stop["name"],
+        eta_iso=next_stop.get("eta") 
+    )
     
-    # If weather alerts exist in state
-    # if CURRENT_STATE.get("weather_alerts"):
-    #     response.append("\nActive Weather Alerts:")
-    #     for alert in CURRENT_STATE["weather_alerts"]:
-    #         response.append(f"  • {alert}")
-    response.append("\n✓ No severe weather alerts for planned route.")
-    response.append("Note: Weather is continuously monitored during route optimization.")
-    
-    return "\n".join(response)
+    return weather_report
 
 # AGENT CONFIGURATION
 llm = ChatGoogleGenerativeAI(
