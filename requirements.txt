@@ -1,0 +1,30 @@
+# Web framework
+fastapi>=0.110.0
+uvicorn>=0.27.0
+
+# Environment variables
+python-dotenv>=1.0.1
+
+# HTTP & API calls
+requests>=2.31.0
+
+# Data validation
+pydantic>=2.6.0
+
+# AI / LLM
+langchain>=0.2.0
+langchain-core>=0.2.0
+langchain-google-genai>=1.0.3
+google-generativeai>=0.5.4
+
+# Database (Supabase)
+supabase>=2.4.0
+
+# Mapping & visualization
+folium>=0.16.0
+
+# Async / concurrency helpers
+anyio>=4.3.0
+
+# CORS (FastAPI dependency)
+starlette>=0.36.3
